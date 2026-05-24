@@ -2,8 +2,6 @@
 
 An AI-powered customer support chatbot that combines a RAG (Retrieval-Augmented Generation) pipeline with a fast FAQ lookup layer to resolve customer queries — and escalates to a human agent when it can't.
 
-![Demo](screenshot.png)
-
 ---
 
 ## How it works
@@ -128,25 +126,3 @@ node backend/server.js
 Open `frontend/index.html` with Live Server in VS Code.
 
 ---
-
-## Key Technical Decisions
-
-**Why two response layers?**
-Common queries like "where is my order" or "how do I get a refund" don't need an LLM — they just need a fast, deterministic answer. The HashMap layer handles these in O(1) time and saves unnecessary Groq API calls. The RAG pipeline only kicks in for open-ended questions the FAQ doesn't cover.
-
-**Why ChromaDB?**
-The knowledge base is a static HTML document that doesn't change often. ChromaDB lets us build the vector store once (`build_Chroma.py`), persist it to disk, and reuse it across restarts without re-embedding every time.
-
-**Why composite indexing on Supabase?**
-Conversation history is always queried by `session_id` ordered by `created_at`. Without an index, this becomes a full table scan as conversations grow. The composite index makes this query fast regardless of table size.
-
-**Why escalate after 5 attempts?**
-If a user has said "No, this didn't help" 5 times, the AI clearly can't resolve the issue. Keeping them in a loop is a bad experience. Automatic escalation to a human agent is the right call at that point.
-
----
-
-## What's next
-- Deploy backend to Railway
-- Deploy frontend to Netlify  
-- Fix knowledge base loading to read from disk instead of Live Server (for production)
-- Improve FAQ matching with fuzzy search instead of exact HashMap lookup
