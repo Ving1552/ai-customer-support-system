@@ -1,0 +1,7 @@
+[
+  { "keyword": "where", "answer": "Location of the concerned item/object." },
+  { "keyword": "late", "answer": "Your food may arrive late due to traffic." },
+  { "keyword": "quality", "answer": "Regarding quality issues of the item/object." },
+  { "keyword": "refund", "answer": "Refunds are processed within 5–7 business days." },
+  { "keyword": "cancel", "answer": "You can cancel your order within 30 minutes of placing it." }
+]

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Base</title>
+</head>
+
+<body>
+  <h1>Knowledge Base</h1>
+  <button onclick="exportAsJSON()">Export JSON</button>
+  <button onclick="exportAsCSV()">Export CSV</button>
+
+  <h2>Order Issues</h2>
+  <div class="kb-item">
+    <h3>Order Not Delivered</h3>
+    <p><strong>Problem:</strong> Package not arrived after 10 days</p>
+    <p><strong>Solution:</strong> Check tracking. Contact support if over 10 days have passed.</p>
+    <span class="tag">delivery</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Package Damaged</h3>
+    <p><strong>Problem:</strong> Product arrived damaged</p>
+    <p><strong>Solution:</strong> Report within 48 hours with photos. We will send replacement at no cost.</p>
+    <span class="tag">damage</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Wrong Address</h3>
+    <p><strong>Problem:</strong> Provided incorrect shipping address</p>
+    <p><strong>Solution:</strong> Contact support immediately. If not shipped yet, we can update for free.</p>
+    <span class="tag">address</span>
+  </div>
+
+  <h2>Refund Issues</h2>
+  <div class="kb-item">
+    <h3>Request Refund</h3>
+    <p><strong>Problem:</strong> Want to return product</p>
+    <p><strong>Solution:</strong> Go to "My Orders", click "Return". Print label and send back. Refund in 5-7 business days after inspection.</p>
+    <span class="tag">refund</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Refund Delayed</h3>
+    <p><strong>Problem:</strong> Return processed but refund not received</p>
+    <p><strong>Solution:</strong> Refunds take 5-7 days after inspection plus 1-3 days bank processing. Contact support if over 10 days.</p>
+    <span class="tag">refund</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Payment Declined</h3>
+    <p><strong>Problem:</strong> Card declined at checkout</p>
+    <p><strong>Solution:</strong> Check card balance, contact your bank for fraud blocks, try different payment method, clear browser cache.</p>
+    <span class="tag">payment</span>
+  </div>
+
+  <h2>Product Issues</h2>
+  <div class="kb-item">
+    <h3>Wrong Item Sent</h3>
+    <p><strong>Problem:</strong> Received different product than ordered</p>
+    <p><strong>Solution:</strong> Contact support with photos and order number. We send correct item via express shipping and provide return label. 10% discount as compensation.</p>
+    <span class="tag">fulfillment</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Defective Product</h3>
+    <p><strong>Problem:</strong> Product not working or has defects</p>
+    <p><strong>Solution:</strong> Within 30 days: free replacement. 30-90 days: repair or replacement at discretion. Beyond 90 days: contact manufacturer.</p>
+    <span class="tag">defect</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Not As Described</h3>
+    <p><strong>Problem:</strong> Product doesn't match website description</p>
+    <p><strong>Solution:</strong> Full refund within 30 days if returned, partial refund if kept, or exchange. We cover return shipping.</p>
+    <span class="tag">quality</span>
+  </div>
+
+  <h2>Account Issues</h2>
+  <div class="kb-item">
+    <h3>Forgot Password</h3>
+    <p><strong>Problem:</strong> Can't log in</p>
+    <p><strong>Solution:</strong> Click "Forgot Password" on login page. Check email for reset link within 2 minutes. Check spam folder if not received.</p>
+    <span class="tag">account</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Account Locked</h3>
+    <p><strong>Problem:</strong> Account locked due to multiple failed login attempts</p>
+    <p><strong>Solution:</strong> Wait 24 hours or use "Forgot Password" to reset immediately. Enable 2-factor authentication for security.</p>
+    <span class="tag">security</span>
+  </div>
+
+  <h2>Promotions</h2>
+  <div class="kb-item">
+    <h3>Coupon Not Working</h3>
+    <p><strong>Problem:</strong> Coupon code rejected</p>
+    <p><strong>Solution:</strong> Check spelling (case-sensitive), expiration date, minimum purchase, product eligibility. Contact support if code should work.</p>
+    <span class="tag">discount</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Price Drop After Purchase</h3>
+    <p><strong>Problem:</strong> Price lower after buying</p>
+    <p><strong>Solution:</strong> We offer price match within 24 hours of purchase. Contact support with proof of lower price.</p>
+    <span class="tag">pricing</span>
+  </div>
+
+  <h2>Technical Issues</h2>
+  <div class="kb-item">
+    <h3>Website Not Loading</h3>
+    <p><strong>Problem:</strong> Website slow or app crashes</p>
+    <p><strong>Solution:</strong> Clear cache, try different browser, disable extensions, restart device, check connection. For app: update, uninstall/reinstall, check storage.</p>
+    <span class="tag">technical</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Checkout Stuck</h3>
+    <p><strong>Problem:</strong> Can't complete purchase</p>
+    <p><strong>Solution:</strong> Disable ad blockers, clear cache, use incognito mode, try different browser, check connection. Contact support with cart contents if stuck.</p>
+    <span class="tag">checkout</span>
+  </div>
+
+  <h2>Shipping</h2>
+  <div class="kb-item">
+    <h3>International Shipping</h3>
+    <p><strong>Problem:</strong> Want to ship outside country</p>
+    <p><strong>Solution:</strong> We ship to 50+ countries. Takes 10-21 days. Customer pays customs/import taxes. Some items have shipping restrictions.</p>
+    <span class="tag">international</span>
+  </div>
+
+  <div class="kb-item">
+    <h3>Address Not Accepted</h3>
+    <p><strong>Problem:</strong> System won't accept shipping address</p>
+    <p><strong>Solution:</strong> Use standard abbreviations (St, Ave, Rd), no special characters, correct ZIP code. Remote areas may not be serviceable. Contact support for alternatives.</p>
+    <span class="tag">address</span>
+  </div>
+
+  <p><strong>Updated:</strong> <span id="lastUpdated"></span></p>
+
+  <script>
+    // Display last updated date
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+
+    // Extract all KB items for export
+    function getAllKBData() {
+      const items = [];
+      document.querySelectorAll('.kb-item').forEach((item) => {
+        const title = item.querySelector('h3').textContent;
+        const problem = item.querySelector('.problem')?.textContent?.replace('Problem: ', '') || '';
+        const solution = item.querySelector('.solution')?.textContent?.replace('Solution: ', '') || '';
+        const tags = Array.from(item.querySelectorAll('.tag')).map((tag) => tag.textContent);
+
+        items.push({
+          title,
+          problem,
+          solution,
+          tags,
+          category: item.parentElement.querySelector('h2')?.textContent || 'General',
+        });
+      });
+      return items;
+    }
+
+    // Export as JSON
+    function exportAsJSON() {
+      const data = getAllKBData();
+      const jsonStr = JSON.stringify(data, null, 2);
+      downloadFile(jsonStr, 'knowledge-base.json', 'application/json');
+    }
+
+    // Export as CSV
+    function exportAsCSV() {
+      const data = getAllKBData();
+      let csv = 'Category,Title,Problem,Solution,Tags\n';
+
+      data.forEach((item) => {
+        const category = `"${item.category.replace(/"/g, '""')}"`;
+        const title = `"${item.title.replace(/"/g, '""')}"`;
+        const problem = `"${item.problem.replace(/"/g, '""')}"`;
+        const solution = `"${item.solution.replace(/"/g, '""')}"`;
+        const tags = `"${item.tags.join(', ')}"`;
+
+        csv += `${category},${title},${problem},${solution},${tags}\n`;
+      });
+
+      downloadFile(csv, 'knowledge-base.csv', 'text/csv');
+    }
+
+    // Export as plain text
+    function exportAsText() {
+      const data = getAllKBData();
+      let text = 'KNOWLEDGE BASE - CUSTOMER SUPPORT SOLUTIONS\n';
+      text += '='.repeat(50) + '\n\n';
+
+      let currentCategory = '';
+      data.forEach((item) => {
+        if (item.category !== currentCategory) {
+          currentCategory = item.category;
+          text += `\n${currentCategory.toUpperCase()}\n${'-'.repeat(40)}\n\n`;
+        }
+
+        text += `Title: ${item.title}\n`;
+        text += `Problem: ${item.problem}\n`;
+        text += `Solution: ${item.solution}\n`;
+        text += `Tags: ${item.tags.join(', ')}\n`;
+        text += '\n---\n\n';
+      });
+
+      downloadFile(text, 'knowledge-base.txt', 'text/plain');
+    }
+
+    // Helper function to download files
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

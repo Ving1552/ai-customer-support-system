@@ -1,0 +1,9 @@
+.env
+node_modules/
+chroma_db/
+venv/
+.venv/
+backend/rag/venv/
+backend/rag/db/
+__pycache__/
+*.pyc

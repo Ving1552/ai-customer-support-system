@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Customer Support</title>
+  <style>
+    body { font-family: Arial; background: #f7f7f7; padding: 40px; }
+    #chat { width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    .msg { padding: 10px; margin: 10px 0; border-radius: 6px; }
+    .msg-text { display: block; margin-bottom: 4px; }
+    .msg-time { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+    .user { background: #d1f0ff; text-align: right; }
+    .bot { background: #eaeaea; text-align: left; }
+    #inputBox { display: flex; margin-top: 20px; }
+    input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px; margin-left: 10px; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
+    #suggestions button { display: block; width: 100%; text-align: left; margin: 6px 0; }
+    #feedback { margin-top: 12px; }
+    #connect-status { margin-top: 12px; color: #b00; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+  <div id="chat">
+    <h2>AI Customer Support</h2>
+
+    <div id="messages"></div>
+
+    <div id="suggestions" style="margin-top:15px;">
+      <div><strong>What's your issue? Select one:</strong></div>
+    </div>
+
+    <div id="inputBox" style="display:none;">
+      <input id="input" placeholder="Type your question..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <div id="feedback" style="display:none;">
+      <div>Did this solve your problem?</div>
+      <button onclick="handleFeedback(true)">Yes</button>
+      <button onclick="handleFeedback(false)">No</button>
+    </div>
+
+    <div id="connect-status" style="display:none;"></div>
+  </div>
+
+  <script>
+    let attempts = 0;
+    let sessionId = "session-" + Date.now();
+    let currentConversationId = null;
+
+    function addMessage(text, isUser = false) {
+      const box = document.createElement("div");
+      box.className = "msg " + (isUser ? "user" : "bot");
+
+      const msgText = document.createElement("div");
+      msgText.className = "msg-text";
+      msgText.innerText = text;
+      box.appendChild(msgText);
+
+      const timeEl = document.createElement("div");
+      timeEl.className = "msg-time";
+      timeEl.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      box.appendChild(timeEl);
+
+      document.getElementById("messages").appendChild(box);
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("input");
+      const btn = document.querySelector("#inputBox button");
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage("You: " + text, true);
+      input.value = "";
+
+      await sendToServer(text, btn);
+    }
+
+    async function sendPredefined(text) {
+      document.getElementById("suggestions").style.display = "none";
+      document.getElementById("inputBox").style.display = "none";
+
+      addMessage("You: " + text, true);
+
+      const btn = document.querySelector("#inputBox button");
+      await sendToServer(text, btn);
+    }
+
+    async function sendToServer(message, button) {
+      const typing = document.createElement("div");
+      typing.className = "msg bot";
+      typing.innerText = "AI is typing...";
+      typing.id = "typing";
+      document.getElementById("messages").appendChild(typing);
+
+      if (button) button.disabled = true;
+
+      let data = null;
+
+      // --- retry logic (fixes rate limit) ---
+      for (let i = 0; i < 3; i++) {
+        try {
+          const res = await fetch("http://localhost:3000/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message, sessionId })
+          });
+
+          if (res.ok) {
+            data = await res.json();
+            break;
+          }
+
+          if (res.status === 429) {
+            await new Promise(r => setTimeout(r, 800));
+            continue;
+          }
+
+          throw new Error("Server error");
+        } catch (e) {
+          if (i === 2) {
+            typing.remove();
+            addMessage("AI: Server error.");
+            return;
+          }
+          await new Promise(r => setTimeout(r, 800));
+        }
+      }
+
+      typing.remove();
+      if (!data) return;
+
+  currentConversationId = data.conversationId;
+  addMessage("AI: " + data.reply, false);
+
+      document.getElementById("feedback").style.display = "block";
+      if (button) button.disabled = false;
+    }
+
+    async function handleFeedback(isYes) {
+      document.getElementById("feedback").style.display = "none";
+
+      await fetch("http://localhost:3000/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: currentConversationId,
+          isResolved: isYes,
+          attemptsCount: attempts
+        })
+      });
+
+      if (isYes) {
+        addMessage("Thank you — glad your issue is resolved.");
+        setTimeout(resetToSuggestions, 1200);
+        return;
+      }
+
+      attempts++;
+
+      if (attempts >= 5) {
+        addMessage("Connecting you to an executive...");
+        document.getElementById("connect-status").style.display = "block";
+        document.getElementById("connect-status").innerText = "Connecting...";
+
+        setTimeout(() => {
+          document.getElementById("connect-status").innerText = "Connected with James";
+          addMessage("James: Hello! How can I help you today?");
+        }, 4000);
+
+        return;
+      }
+
+      addMessage("Sorry that didn't help. Do you have any other issue?");
+      document.getElementById("suggestions").style.display = "block";
+      document.getElementById("inputBox").style.display = "flex";
+    }
+
+    function resetToSuggestions() {
+      document.getElementById("messages").innerHTML = "";
+      document.getElementById("suggestions").style.display = "block";
+      document.getElementById("inputBox").style.display = "none";
+      document.getElementById("connect-status").style.display = "none";
+      attempts = 0;
+    }
+
+    async function loadFaqSuggestions() {
+      const res = await fetch("http://localhost:3000/faqs");
+      const faqs = await res.json();
+      const box = document.getElementById("suggestions");
+
+      faqs.slice(0, 6).forEach(f => {
+        const btn = document.createElement("button");
+        btn.innerText = f.keyword;
+        btn.onclick = () => sendPredefined(f.keyword);
+        box.appendChild(btn);
+      });
+
+      const none = document.createElement("button");
+      none.innerText = "None of these";
+      none.onclick = () => {
+        box.style.display = "none";
+        document.getElementById("inputBox").style.display = "flex";
+      };
+      box.appendChild(none);
+    }
+
+    window.addEventListener("DOMContentLoaded", loadFaqSuggestions);
+  </script>
+</body>
+</html>
