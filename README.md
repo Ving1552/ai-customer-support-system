@@ -1,84 +1,152 @@
 # AI Customer Support System
 
-A multi-stack AI-powered customer support system with RAG and feedback collection.
+An AI-powered customer support chatbot that combines a RAG (Retrieval-Augmented Generation) pipeline with a fast FAQ lookup layer to resolve customer queries — and escalates to a human agent when it can't.
 
-## Tech Stack
-- Node.js (Express, Supabase)
-- Python (LangChain, OpenAI, Google Gemini)
-- HTML/CSS/JS (Frontend)
-- ChromaDB (Vector DB)
-
-## Project Structure
-```
-backend/
-  faqs.json
-  server.js
-  rag/
-    build_Chroma.py
-    rag.py
-    requirements.txt
-    chroma_db/
-    db/
-frontend/
-  index.html
-  knowledge-base.html
-package.json
-.env.example
-.gitignore
-README.md
-```
-
-## Setup Instructions
-
-### 1. Clone the repository
-```sh
-git clone <repo-url>
-cd AI Customer Support System
-```
-
-### 2. Environment Variables
-- Copy `.env.example` to `.env` and fill in your keys:
-  - SUPABASE_URL
-  - SUPABASE_ANON_KEY
-  - OPENAI_API_KEY
-  - GEMINI_API_KEY
-  - GROQ_API_KEY
-
-### 3. Backend Setup
-#### Node.js (Express)
-- Install dependencies:
-  ```sh
-  cd backend
-  npm install
-  ```
-- Start the server:
-  ```sh
-  node server.js
-  ```
-
-#### Python (RAG Service)
-- Create a virtual environment and activate it:
-  ```sh
-  cd backend/rag
-  python -m venv venv
-  venv\Scripts\activate  # On Windows
-  # or
-  source venv/bin/activate  # On Mac/Linux
-  ```
-- Install Python dependencies:
-  ```sh
-  pip install -r requirements.txt
-  ```
-- Run the RAG service as needed:
-  ```sh
-  python rag.py
-  ```
-
-### 4. Frontend
-- Open `frontend/index.html` in your browser.
+![Demo](screenshot.png)
 
 ---
 
-**Note:**
-- The `.env` file is required for both backend and Python services. Do not commit your real `.env` file; use `.env.example` as a template.
-- Ignore folders like `node_modules/`, `chroma_db/`, `venv/`, `.venv/`, `backend/rag/venv/`, `backend/rag/db/`, `__pycache__/`, and `*.pyc` files as per `.gitignore`.
+## How it works
+
+When a user opens the chat, they're shown a set of common issue buttons (where, late, refund, quality, etc.). If they pick one, the system does an **O(1) HashMap lookup** against 17 pre-loaded FAQ entries — no AI call needed, instant response.
+
+If the issue isn't in the FAQ, the user types freely. The message goes to a **RAG pipeline** — it retrieves the 3 most relevant chunks from a ChromaDB vector store built on the knowledge base, then passes them as context to a **Groq-hosted LLaMA 3.3 70B model** to generate a response.
+
+After every response, the user can say Yes (resolved) or No (not helpful). If they say No 5 times in a row, the system automatically connects them to a human agent.
+
+Every conversation — message, response, source, feedback, attempt count — is saved to **Supabase PostgreSQL** for analytics.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| RAG Pipeline | Python, LangChain, ChromaDB, HuggingFace Embeddings |
+| LLM | Groq (llama-3.3-70b-versatile) |
+| Backend | Node.js, Express |
+| Database | Supabase PostgreSQL |
+| Frontend | HTML, CSS, Vanilla JS |
+| Knowledge Base | HTML document (17 support categories) |
+
+---
+
+## Project Structure
+
+```
+AI Customer Support System/
+├── backend/
+│   ├── rag/
+│   │   ├── build_Chroma.py       # builds ChromaDB vector store from knowledge base
+│   │   ├── rag.py                # Flask RAG service (port 5000)
+│   │   └── requirements.txt
+│   ├── faqs.json                 # 17 FAQ entries loaded into HashMap
+│   └── server.js                 # Node.js backend (port 3000)
+├── frontend/
+│   ├── index.html                # chat UI
+│   └── knowledge-base.html       # source document for RAG
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+---
+
+## Setup
+
+### Prerequisites
+- Node.js 18+
+- Python 3.10+
+- A Supabase account
+- A Groq API key (free at console.groq.com)
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/Ving1552/ai-customer-support-system.git
+cd ai-customer-support-system
+```
+
+### 2. Set up environment variables
+```bash
+cp .env.example .env
+```
+Fill in your keys in `.env`:
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+GROQ_API_KEY=your_groq_api_key
+```
+
+### 3. Create the Supabase table
+Run this in your Supabase SQL editor:
+```sql
+CREATE TABLE conversations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  user_message TEXT,
+  ai_response TEXT,
+  source TEXT,
+  keyword TEXT,
+  user_feedback BOOLEAN,
+  attempts_count INTEGER,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_conversations_session_created 
+ON conversations(session_id, created_at);
+```
+
+### 4. Set up Python environment
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # Mac/Linux
+pip install -r backend/rag/requirements.txt
+```
+
+### 5. Build the ChromaDB vector store
+Open `frontend/knowledge-base.html` with Live Server in VS Code first (must be on port 5500), then:
+```bash
+python backend/rag/build_Chroma.py
+```
+You should see `Chroma DB created` and a chunk count of ~22.
+
+### 6. Run the project (3 terminals)
+
+**Terminal 1 — RAG service:**
+```bash
+.venv\Scripts\activate
+python backend/rag/rag.py
+```
+
+**Terminal 2 — Node backend:**
+```bash
+node backend/server.js
+```
+
+**Terminal 3 — Frontend:**
+Open `frontend/index.html` with Live Server in VS Code.
+
+---
+
+## Key Technical Decisions
+
+**Why two response layers?**
+Common queries like "where is my order" or "how do I get a refund" don't need an LLM — they just need a fast, deterministic answer. The HashMap layer handles these in O(1) time and saves unnecessary Groq API calls. The RAG pipeline only kicks in for open-ended questions the FAQ doesn't cover.
+
+**Why ChromaDB?**
+The knowledge base is a static HTML document that doesn't change often. ChromaDB lets us build the vector store once (`build_Chroma.py`), persist it to disk, and reuse it across restarts without re-embedding every time.
+
+**Why composite indexing on Supabase?**
+Conversation history is always queried by `session_id` ordered by `created_at`. Without an index, this becomes a full table scan as conversations grow. The composite index makes this query fast regardless of table size.
+
+**Why escalate after 5 attempts?**
+If a user has said "No, this didn't help" 5 times, the AI clearly can't resolve the issue. Keeping them in a loop is a bad experience. Automatic escalation to a human agent is the right call at that point.
+
+---
+
+## What's next
+- Deploy backend to Railway
+- Deploy frontend to Netlify  
+- Fix knowledge base loading to read from disk instead of Live Server (for production)
+- Improve FAQ matching with fuzzy search instead of exact HashMap lookup
