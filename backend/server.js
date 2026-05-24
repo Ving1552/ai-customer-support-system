@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
 import { createClient } from '@supabase/supabase-js';
+import rateLimit from 'express-rate-limit';
 
 // Resolve __dirname for ESM and load .env next to this file
 const __filename = fileURLToPath(import.meta.url);
@@ -13,15 +14,23 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // max 50 requests per IP per 15 mins
+  message: { reply: "Too many requests, please try again later." }
+});
+
+app.use('/chat', limiter);
 app.use(cors());
 app.use(express.json());
+
 
 // Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
-console.log('✅ Supabase connected');
+console.log('Supabase connected');
 
 // Load FAQs (file located next to this server file)
 const faqs = JSON.parse(fs.readFileSync(path.join(__dirname, "faqs.json"), "utf-8"));
